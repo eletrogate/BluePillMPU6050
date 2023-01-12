@@ -52,7 +52,7 @@ typedef struct leituraAcel { //estrutura para armazenar as leituras do acelerome
 	int16_t accelZ;
 } leituraAcel;
 
-typedef struct leituraGyro { //estrutura para armazenar as leituras do acelerometro
+typedef struct leituraGyro { //estrutura para armazenar as leituras do giroscópio
 	int16_t gyroX;
 	int16_t gyroY;
 	int16_t gyroZ;
@@ -134,7 +134,7 @@ void mpu6050ReadGyro(leituraGyro *leitura) { // lê medições do giroscópio
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t mensagem[64] = {0}; // buffer com bytes o suficiente para armazenar a mensagem
+	uint8_t mensagem[128] = {0}; // buffer com bytes o suficiente para armazenar a mensagem
 	leituraAcel leituraA;
 	leituraGyro leituraG;
   /* USER CODE END 1 */
@@ -170,8 +170,12 @@ int main(void)
 	  mpu6050ReadAccel(&leituraA); // lê as medições de aceleração
 	  mpu6050ReadGyro(&leituraG);	 // lê as medições de velocidade angular
 
+	  float accelG[3] = {leituraA.accelX / 16384.0, leituraA.accelY / 16384.0, leituraA.accelZ / 16384.0}; // converte, com base na resolução, a leitura para g
+	  float gyroGpS[3] = {leituraG.gyroX / 131.0, leituraG.gyroY / 131.0, leituraG.gyroZ / 131.0};				 // converte, com base na resolução, a leitura para  °/s
+
 	  /* armazena, em mensagem, uma string formatada conforme o segundo argumento e composta pelos argumentos seguintes */
-    sprintf((char *) mensagem, "%d %d %d %d %d %d\r\n", leituraA.accelX, leituraA.accelY, leituraA.accelZ, leituraG.gyroX, leituraG.gyroY, leituraG.gyroZ);
+    sprintf((char *) mensagem, "a (x, y, z) [g]: %.2f %.2f %.2f | v (x, y, z) [°/s]: %.2f %.2f %.2f\r\n",
+    																	accelG[0], accelG[1], accelG[2], gyroGpS[0], gyroGpS[1], gyroGpS[2]);
     HAL_UART_Transmit(&huart1, mensagem, sizeof(mensagem), 100); // envia mensagem pela UART1
     HAL_Delay(100); // aguarda 100 ms
     /* USER CODE BEGIN 3 */
